@@ -1,0 +1,6 @@
+xima3s05
+EnsiSle15
+
+ssh -X <login>@<station>
+
+avec <station>: cime250[123]
