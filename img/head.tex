@@ -1,0 +1,166 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{eurosym}
+\usepackage{listing}
+
+\newcommand{\unitnb}[2]{\unit{\nombre{#1}}{#2}}
+\newcommand{\hexa}[1]{$\mathrm{\textbf{0x}}{#1}$}
+\definecolor{vert}{rgb}{0.2,0.6,0.4} 
+\definecolor{gris}{rgb}{0.4,0.4,0.4} 
+
+\newcommand{\lettrine}[2]{\hspace{5mm}\LARGE{#1}\normalsize{#2}}
+
+\lstset{
+	language=C,
+	basicstyle=\footnotesize,
+	numbers=left,
+	numberstyle=\tiny,
+	stepnumber=5,
+	frame=single,
+	captionpos=t,
+	breaklines=true,
+	keywordstyle=\color{blue}\textbf,
+	commentstyle=\color{vert}\textit,
+	stringstyle=\color{gris}\texttt
+}
+
+\newenvironment{changemargin}[2]{\begin{list}{}{
+	\setlength{\topsep}{0pt}
+	\setlength{\leftmargin}{0pt}
+	\setlength{\rightmargin}{0pt}
+	\setlength{\listparindent}{\parindent}
+	\setlength{\itemindent}{\parindent}
+	\setlength{\parsep}{0pt plus 1pt}
+	\addtolength{\leftmargin}{#1}
+	\addtolength{\rightmargin}{#2}
+}\item }{\end{list}}
+
+%--------------------EVITE LES ORPHELINS-----------
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+%--------------------------------------------------
+
+\makeatletter
+\@addtoreset{chapter}{part}
+\makeatother
+
+%\renewcommand{\FrenchLabelItem}{\textbullet}
+
+\textwidth = 15cm
+\hoffset = -1.54cm
+\voffset = -1cm
+\headsep = 0cm
+\headheight = 0cm
+\topmargin = 1cm
+\textheight = 22cm
+
+%% Package pour faire des liens dynamiques entre les pdf
+\usepackage[pdftex,
+		    bookmarks         = true,       % Signets
+		    bookmarksnumbered = true,       % Signets numérotés
+		    pdfpagemode       = None,       % Signets fermé à l'ouverture
+		    pdfstartview      = FitH,       % La page prend toute la largeur
+		    colorlinks        = true,       % Liens en couleur
+		    urlcolor          = cyan,				% Couleur des liens externes
+		    pdfborder         = {0 0 0}   	% Style de bordure
+    		]{hyperref}
+
+\hypersetup{
+    pdfauthor   = {Adrien Oliva, Gaëtan Harter},
+    pdftitle    = {Projet OCAE},
+    pdfsubject  = {Projet systême embarqué},
+    pdfkeywords = {Projet SLE systême embarqué},
+    pdfcreator  = {PDFLaTeX},
+    pdfproducer = {PDFLaTeX}
+}
+
+\begin{document}
+
+\rule{5cm}{1pt}
+
+Gaëtan Harter
+
+Adrien Oliva
+
+\rule{5cm}{1pt}
+
+\begin{flushright}
+\vspace{5mm}\includegraphics[width=6cm]{../img/ensimag.png}
+
+\footnotesize{\textsc{\'Ecole Nationale Sup\'erieur d'Informatique}}
+
+\footnotesize{\textsc{ et de Math\'ematiques Appliqu\'ees de Grenoble}}
+
+\footnotesize{681, rue de la Passerelle, 38400 Saint Martin d'Heres}
+\end{flushright}
+
+\vspace{2cm}
+
+\begin{center}
+
+\begin{LARGE}
+Projet SLE
+\end{LARGE}
+
+\begin{LARGE}
+Écriture de driver pour iRDMA
+\end{LARGE}
+
+\vspace{5mm}
+
+\begin{Large}
+\TITLE
+\end{Large}
+
+\rule{6cm}{2pt}
+\end{center}
+
+\vspace{25mm}
+
+\begin{flushright}
+
+\includegraphics[width=5cm]{../img/microblaze.png}
+
+\rule{11cm}{0.5pt}
+
+\vspace{-3mm}
+\rule{7cm}{0.5pt}
+
+\vspace{-3mm}
+\rule{5cm}{0.5pt}
+
+\vspace{-3mm}
+\rule{4cm}{0.5pt}
+
+\vspace{5mm}
+\href{mailto:gaetan.harter@ensimag.imag.fr}
+{\texttt{gaetan.harter@ensimag.imag.fr}}
+
+\href{mailto:adrien.oliva@ensimag.imag.fr}
+{\texttt{adrien.oliva@ensimag.imag.fr}}
+\end{flushright}
+
+\vfill
+\eject
+
+\tableofcontents
+
+\vfill
+\eject
+
+
+
