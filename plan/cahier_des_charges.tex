@@ -2,4 +2,38 @@
 
 \input{../img/head.tex}
 
+\section{Fonction du driver}
+
+Le module s'articule en plusieurs parties.
+
+\begin{itemize}
+\item Chargement et déchargement du module
+\item Gestionnaire d'interruptions
+\item Fonctions d'envoi de paquet sur TCP/IP et sur DDP/IP
+\item Fonctions de réception de paquet (dépend du protocole d'envoi du
+paquet )
+\end{itemize}
+
+\subsection{Gestion du module}
+
+
+
+\subsection{Gestionnaire d'interruptions}
+
+\subsection{Envoi et réception de paquets}
+
+L'envoi et la réception de paquet, que se soit TCP ou DDP utilise un ring
+buffer. Un message TCP est entièrement stocké dans un ou plusieurs paquets
+tandis que le message DDP contient une adresse mémoire pointant sur les
+données du paquet.
+
+\subsubsection{Transmission}
+
+
+
+
+\section{Protocole DDP}
+
+
+
 \end{document}
