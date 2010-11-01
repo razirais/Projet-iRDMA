@@ -2,38 +2,67 @@
 
 \input{../img/head.tex}
 
-\section{Fonction du driver}
+\section{Contrôleur RocketIO}
 
-Le module s'articule en plusieurs parties.
+Le rocket IO est un contrôleur réseau couplé à un DMA. Il permet 
+d'envoyer des paquets, d'en réceptionner comme un contrôleur classique
+mais aussi de recevoir et de stocker des paquets directement en mémoire,
+sans avoir à passer par le système d'exploitation.
+
+\section{Driver}
+
+Le but du projet est de réaliser la partie logiciel liant le contrôleur 
+au système d'exploitation, un noyau linux 2.6.32, sur une carte Xilinx
+Virtex 4.
+
+Ce driver prendra la forme d'un module réseau pour un noyau linux. Il 
+devra supporter l'envoi de paquets TCP/IP et la réception de paquets DDP/IP.
+Ce dernier est un protocole qui permet la réception de paquets directement
+en mémoire. 
+
+La réception des paquets se fait dans un espace mémoire réservé au driver,
+sous la forme d'un tampon circulaire. 
+
+Pour une utilisation plus générale du driver, on implémentera également la 
+réception TCP/IP et l'émission DDP/IP.
+
+La communication entre le module, le matériel et le 
+système d'exploitation s'effectue via des interruptions.
+
+\section{Planning}
+
+\begin{tabular}{ll}
+\oldstylenums{21} sept. \oldstylenums{2010} & Choix du sujet \\
+\oldstylenums{28} sept. \oldstylenums{2010} & Première approche du LDD \\
+du \oldstylenums{4} au \oldstylenums{19} oct. \oldstylenums{2010} &
+Compilation de l'environnement de cross-compilation \\
+& Démonstration du driver sur machine nue et de l'environnement Xilinx \\
+du \oldstylenums{24} oct au \oldstylenums{2} nov. \oldstylenums{2010} &
+Lecture du Linux Device Driver \\
+& Lecture des anciens rapports concernant le contrôleur Rocket IO \\
+& Élaboration du cahier des charges \\
+du \oldstylenums{2} au \oldstylenums{9} nov. \oldstylenums{2010} &
+Allégement et portage du module préexistant pour noyau 2.4 jusqu'à \\
+& compilation et fonctionnement sur carte (chargement et déchargement,\\
+& sans réelles fonctionnalités) \\
+du \oldstylenums{9} nov. au \oldstylenums{14} dec. \oldstylenums{2010} &
+Ajout progressif des fonctionnalités du driver avec le banc de test associé\\
+\end{tabular}
+
+La fin du projet est consacré au débugage et à l'écriture de la documentation
+même si ces deux étapes seront en partie réalisées au cours du développement.
+
+\subsection*{Ajout de fonctionnalités}
+
+Les fonctionnalités suivantes seront implantées les unes à la suite des autres~:
 
 \begin{itemize}
-\item Chargement et déchargement du module
-\item Gestionnaire d'interruptions
-\item Fonctions d'envoi de paquet sur TCP/IP et sur DDP/IP
-\item Fonctions de réception de paquet (dépend du protocole d'envoi du
-paquet )
+\item chargement et déchargement du module
+\item ouverture et fermeture de l'interface réseau
+\item gestion du tampon circulaire
+\item réception et envoi via le protocole TCP/IP
+\item envoi de paquets DDP/IP
+\item réception DDP/IP
 \end{itemize}
-
-\subsection{Gestion du module}
-
-
-
-\subsection{Gestionnaire d'interruptions}
-
-\subsection{Envoi et réception de paquets}
-
-L'envoi et la réception de paquet, que se soit TCP ou DDP utilise un ring
-buffer. Un message TCP est entièrement stocké dans un ou plusieurs paquets
-tandis que le message DDP contient une adresse mémoire pointant sur les
-données du paquet.
-
-\subsubsection{Transmission}
-
-
-
-
-\section{Protocole DDP}
-
-
 
 \end{document}
