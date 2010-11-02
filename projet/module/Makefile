@@ -15,8 +15,8 @@ PHONY: clean realclean
 
 clean:
 	rm -f *.o
+	rm -f modules.order Module.symvers
+	rm -f *.mod.c
 
 realclean: clean
-	rm -f modules.order Module.symvers
 	rm -f *.ko
-	rm -f *.mod.c

@@ -11,7 +11,7 @@ MODULE_AUTHOR("Adrien Oliva, Gaetan Harter");
 #define DEBUG
 
 #ifdef DEBUG
-#	define DLOG(fmt, args...) printk("%s:"fmt"\n", __func__, ##args)
+#	define DLOG(fmt, args...) printk(KERN_ALERT "%s:"fmt"\n", __func__, ##args)
 #	define KLOG(fmt, args...) printk(KERN_ERR fmt"\n", ##args)
 	int debug = 1;
 #else
@@ -27,6 +27,7 @@ static int __init initialization_function(void)
 {
         /* Initialization code here */
 
+	DLOG("Starting");
 
         return 0;
 }
@@ -37,6 +38,7 @@ module_init(initialization_function);
 static void __exit cleanup_function(void)
 {
         /* Clean up code here */
+	DLOG("Exiting");
 
 }
 
