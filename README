@@ -4,5 +4,7 @@ EnsiSle15
 ssh -Y <login>@<station>
 
 avec <station>: cime250[123]
+		ocaepc13.cime.inpg.fr
+
 		ocaepc19.cime.inpg.fr
 		cimepc71.cime.inpg.fr
