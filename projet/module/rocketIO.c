@@ -183,14 +183,11 @@ static void rocketIO_init_ring(struct net_device *dev)
 int rocketIO_open(struct net_device *dev)
 {
 	DLOG("DUMMY");
-	//MOD_INC_USE_COUNT;
-
 	return 0;
 }
 
-int rocketIO_stop(struct net_device *dev)
+int rocketIO_release(struct net_device *dev)
 {
-	//MOD_DEC_USE_COUNT;
 	DLOG("DUMMY");
 	return 0;
 }
@@ -198,6 +195,8 @@ int rocketIO_stop(struct net_device *dev)
 void rocketIO_init(struct net_device *dev)
 {
 	DLOG("DUMMY");
+
+	ether_setup(dev);
 	return;
 }
 
