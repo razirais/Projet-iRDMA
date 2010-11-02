@@ -1,7 +1,7 @@
 # If KERNELRELEASE is defined, we've been invoked from the
 # kernel build system and can use its language.
 ifneq ($(KERNELRELEASE),)
-    	obj-m := rocketIO.o
+    	obj-m := rocketIO.o rocketIO_ao.o
     	# Otherwise we were called directly from the command
 	#line; invoke the kernel build system.
 else
@@ -10,3 +10,13 @@ else
 default:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 endif
+
+PHONY: clean realclean
+
+clean:
+	rm -f *.o
+
+realclean: clean
+	rm -f modules.order Module.symvers
+	rm -f *.ko
+	rm -f *.mod.c
