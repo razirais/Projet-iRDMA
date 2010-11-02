@@ -1,6 +1,6 @@
 CTEX=pdflatex
 FLAGS=--interaction nonstopmode
-IMG=../img/ensimag.png ../img/microblaze.png
+IMG=../img/ensimag.png ../img/virtex4.png ../img/xilinx.png
 DEPS=../img/head.tex $(IMG)
 LOG=/dev/null
 

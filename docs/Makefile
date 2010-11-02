@@ -1,6 +1,6 @@
 CTEX=pdflatex
 FLAGS=
-IMG=../img/ensimag.png ../img/microblaze.png
+IMG=../img/ensimag.png ../img/xilinx.png ../img/virtex4.png
 DEPS=../img/head.tex $(IMG)
 LOG=/dev/null
 
