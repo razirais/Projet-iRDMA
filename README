@@ -1,6 +1,8 @@
 xima3s05
 EnsiSle15
 
-ssh -X <login>@<station>
+ssh -Y <login>@<station>
 
 avec <station>: cime250[123]
+		ocaepc19.cime.inpg.fr
+		cimepc71.cime.inpg.fr
