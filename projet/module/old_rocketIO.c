@@ -96,14 +96,14 @@ struct rio_priv {
 
 	/* Réception. */
 	unsigned char *rx_ring;	/* adresse du ring buffer */
-	unsigned int cur_rx;	/* Index dans le ring buffer du prochain paquet reçu */
+	unsigned int cur_rx;	/* Index ring buffer du prochain paquet reçu */
 	unsigned int rx_buf_len;/* taille du buffer ring */
 
 	/* Transmission */
 	unsigned int cur_tx; 	/* descripteur à utiliser pour une transmission */
-	unsigned int dirty_tx 	/* 1er descripteur qui n'a pas fini de transmettre */
+	unsigned int dirty_tx; 	/* 1er descripteur qui n'a pas fini de transmettre */
 	unsigned int tx_flag;
-	unsigned long tx_full; 	/* file de transmission est pleine */
+	unsigned long tx_full; 	/* file de transmission pleine */
 
 	/* buffers utilisés pour la transmission */
 	struct sk_buff 	*tx_skbuff[NUM_TX_DESC];
