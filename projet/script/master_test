@@ -1,0 +1,32 @@
+#!/bin/sh
+
+OLDIFS=$IFS
+IFS=$'\n'
+
+if [ ! -d ../bin ]
+then
+	echo "Please compile your module before testing it !"
+	exit 1
+fi
+
+if [ ! -d ../log ]
+then
+	mkdir ../log
+fi
+
+for i in $(find ../bin -name "*.ko") 
+do
+	LOG01="../log/$(basename "$i").01.load.log"
+	echo -n "Load and unload test for $(basename "$i")..."
+	./01.load.sh "$i" > "$LOG01"
+	if [ $? = 0 ]
+	then
+		echo [DONE]
+	else
+		echo [FAIL]
+	fi
+	chgrp users "$LOG01"
+done
+
+
+IFS=$OLDIFS

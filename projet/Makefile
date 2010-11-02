@@ -8,7 +8,7 @@ all:
 	cp module/*.ko bin/
 
 test:
-	@(cd script && $(MAKE))
+	@(cd script && $(MAKE) -s)
 
 clean: 
 	@(cd module && $(MAKE) clean)

@@ -18,6 +18,8 @@ clean:
 	rm -f *.o
 	rm -f modules.order Module.symvers
 	rm -f *.mod.c
+	rm -f .*.cmd
+	rm -Rf .tmp_versions/
 
 realclean: clean
 	rm -f *.ko
