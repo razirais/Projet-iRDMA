@@ -150,8 +150,14 @@ void rocketIO_reg_uninit(struct net_device *dev) {
 }
 
 struct net_device_ops rocketIO_ops = {
-	.ndo_init = &rocketIO_reg_init,
-	.ndo_uninit = &rocketIO_reg_uninit
+	.ndo_init       = &rocketIO_reg_init,
+	.ndo_uninit     = &rocketIO_reg_uninit,
+        .ndo_open       = &rocketIO_open,
+        .ndo_stop       = &rocketIO_release,
+        .ndo_start_xmit = &rocketIO_start_xmit,
+        .ndo_do_ioctl   = &rocketIO_ioctl,
+        .ndo_get_stats  = &rocketIO_stats,
+        .ndo_tx_timeout = &rocketIO_tx_timeout
 };
 
 void rocketIO_init(struct net_device *dev)
@@ -223,7 +229,7 @@ int IN_init_addr(void)
 	memcpy(hw_addr0, "\0ROCK0\0", 7);
 	memcpy(hw_addr1, "\0ROCK1\0", 7);
 	return 0;
-error:
+error:                                  // a revoir si clean de mémoire
 	return -EAGAIN;
 }
 
