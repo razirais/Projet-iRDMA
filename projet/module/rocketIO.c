@@ -52,7 +52,8 @@ struct rio_priv {
 
 
 /* routine de traitement des interruptions */
-static void rocketIO_interrupt(int irq, void *dev_id, struct pt_regs *regs)
+//static 
+void rocketIO_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 {
 	DLOG("DUMMY");
 }
@@ -122,7 +123,8 @@ void rocketIO_tx_timeout(struct net_device *dev)
 
 
 /* initialisatin des buffers. */
-static void rocketIO_init_ring(struct net_device *dev)
+//static 
+void rocketIO_init_ring(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return;
@@ -146,6 +148,46 @@ void rocketIO_init(struct net_device *dev)
 	DLOG("DUMMY");
 
 	ether_setup(dev);
+	/* dev->header_ops		= &eth_header_ops;
+	 * dev->type		= ARPHRD_ETHER;
+	 * dev->hard_header_len 	= ETH_HLEN;
+	 * dev->mtu		= ETH_DATA_LEN;
+	 * dev->addr_len		= ETH_ALEN;
+	 * dev->tx_queue_len	= 1000;	// Ethernet wants good queues 
+	 * dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
+	 * memset(dev->broadcast, 0xFF, ETH_ALEN);
+	 */
+
+	dev->open = rocketIO_open;
+	dev->stop = rocketIO_release;
+	dev->hard_start_xmit = rocketIO_start_xmit;
+	dev->do_ioctl = rocketIO_ioctl;
+	dev->get_stats = rocketIO_stats;
+	dev->tx_timeout = rocketIO_tx_timeout;
+	//dev->set_config = rocketIO_config;
+	//dev->change_mtu = rocketIO_change_mtu;
+	//dev->rebuild_header = rocketIO_rebuild_header;
+	//dev->hard_header = rocketIO_header;
+	//dev->watchdog_timeo = timeout;
+
+	dev->flags |= IFF_NOARP | IFF_PROMISC;
+	dev->features | = NETIF_F_NO_CSUM;
+	dev->hard_header_cache = NULL;	/* Disable caching */
+	dev->addr_len = 0;
+	dev->hard_header_len = 0;
+	dev->type = 0x1;
+	dev->tx_queue_len = 100;
+	dev->mtu = 1500;
+
+	SET_MODULE_OWNER(dev);
+	/*
+	 * Then, initialize the priv field. This encloses the statistics
+	 * and a few private fields.
+	 */
+	priv = dev->priv;
+	memset(priv, 0, sizeof(struct rio_priv));
+	spin_lock_init(&priv->lock);
+	DLOG("for %s OK", dev->name);
 	return;
 }
 
@@ -171,11 +213,13 @@ error:
 }
 
 /*
+ * Alloue un netdev, et l'enregistre.
+ * met à jour la variable d'etat dev_is_registered[num]
+ * 
  * num = 0 ou 1 == numéro de l'interface
  */
 
 // va faire planter tant que rocketIO_init est pas finit
-
 int IN_register_netdev(int num)
 {
 	int res;
@@ -242,7 +286,8 @@ int rocketIO_init_module(void)
 		if (IN_register_netdev(i) < 0) 
 			goto error;
 	
-
+	if (loopback == 0)
+		rio_dev0->base_addr = RIO_BASE_ADDR_0;
 
 	return 0;
 error:
@@ -259,6 +304,7 @@ static void __exit cleanup_function(void)
 {
 	rocketIO_cleanup();
 }
+
 module_init(initialization_function);
 module_exit(cleanup_function);
 
