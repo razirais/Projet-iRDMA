@@ -124,7 +124,7 @@ void rocketIO_tx_timeout(struct net_device *dev)
 
 /* initialisatin des buffers. */
 //static 
-void rocketIO_init_ring(struct net_device *dev)
+void IN_init_ring(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return;
@@ -142,9 +142,21 @@ int rocketIO_release(struct net_device *dev)
 	DLOG("DUMMY");
 	return 0;
 }
+int rocketIO_reg_init(struct net_device *dev) {
+	return 0;
+}
+void rocketIO_reg_uninit(struct net_device *dev) {
+	return;
+}
+
+struct net_device_ops rocketIO_ops = {
+	.ndo_init = &rocketIO_reg_init,
+	.ndo_uninit = &rocketIO_reg_uninit
+};
 
 void rocketIO_init(struct net_device *dev)
 {
+	struct rio_priv *priv;
 	DLOG("DUMMY");
 
 	ether_setup(dev);
@@ -157,8 +169,9 @@ void rocketIO_init(struct net_device *dev)
 	 * dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
 	 * memset(dev->broadcast, 0xFF, ETH_ALEN);
 	 */
+	dev->netdev_ops = &rocketIO_ops;
 
-	dev->open = rocketIO_open;
+	/*dev->open = rocketIO_open;
 	dev->stop = rocketIO_release;
 	dev->hard_start_xmit = rocketIO_start_xmit;
 	dev->do_ioctl = rocketIO_ioctl;
@@ -172,7 +185,7 @@ void rocketIO_init(struct net_device *dev)
 
 	dev->flags |= IFF_NOARP | IFF_PROMISC;
 	dev->features | = NETIF_F_NO_CSUM;
-	dev->hard_header_cache = NULL;	/* Disable caching */
+	dev->hard_header_cache = NULL;//
 	dev->addr_len = 0;
 	dev->hard_header_len = 0;
 	dev->type = 0x1;
@@ -180,11 +193,13 @@ void rocketIO_init(struct net_device *dev)
 	dev->mtu = 1500;
 
 	SET_MODULE_OWNER(dev);
+	*/
+
 	/*
 	 * Then, initialize the priv field. This encloses the statistics
 	 * and a few private fields.
 	 */
-	priv = dev->priv;
+	priv = netdev_priv(dev);
 	memset(priv, 0, sizeof(struct rio_priv));
 	spin_lock_init(&priv->lock);
 	DLOG("for %s OK", dev->name);
