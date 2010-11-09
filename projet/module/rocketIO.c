@@ -73,7 +73,7 @@ struct net_device_stats *rocketIO_stats(struct net_device *dev)
 /*
  * Ioctl commands
  */
-int rocketIO_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
+int op_rio_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	DLOG("DUMMY");
 	return 0;
@@ -99,7 +99,7 @@ void d_print_packet(char *pkt, int size, const char *from)
 }
 
 /* traite une interruption de réception */
-int rocketIO_rx(struct net_device *dev)
+int op_rio_rx(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return 0;
@@ -107,7 +107,7 @@ int rocketIO_rx(struct net_device *dev)
 
 
 /* fonction de transmission */
-int rocketIO_start_xmit(struct sk_buff *skb, struct net_device *dev)
+int op_rio_start_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return 0;
@@ -115,7 +115,7 @@ int rocketIO_start_xmit(struct sk_buff *skb, struct net_device *dev)
 /*
  * traite un transmit timeout.
  */
-void rocketIO_tx_timeout(struct net_device *dev)
+void op_rio_tx_timeout(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return;
@@ -131,21 +131,23 @@ void IN_init_ring(struct net_device *dev)
 }
 
 
-int rocketIO_open(struct net_device *dev)
+int op_rio_open(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return 0;
 }
 
-int rocketIO_release(struct net_device *dev)
+int op_rio_release(struct net_device *dev)
 {
 	DLOG("DUMMY");
 	return 0;
 }
-int rocketIO_reg_init(struct net_device *dev) {
+int op_rio_reg_init(struct net_device *dev) {
+	DLOG("%s", dev->name);
 	return 0;
 }
-void rocketIO_reg_uninit(struct net_device *dev) {
+void op_rio_reg_uninit(struct net_device *dev) {
+	DLOG("%s", dev->name);
 	return;
 }
 
