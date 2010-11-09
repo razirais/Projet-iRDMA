@@ -152,8 +152,8 @@ void op_rio_reg_uninit(struct net_device *dev) {
 }
 
 struct net_device_ops rocketIO_ops = {
-	.ndo_init = &rocketIO_reg_init,
-	.ndo_uninit = &rocketIO_reg_uninit
+	.ndo_init = &op_rio_reg_init,
+	.ndo_uninit = &op_rio_reg_uninit
 };
 
 void rocketIO_init(struct net_device *dev)
