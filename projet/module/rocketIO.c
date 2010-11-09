@@ -5,78 +5,28 @@
 
 #include <linux/netdevice.h>
 
+#include "rocketIO.h"
+
 
 // To use symbolic values of error
 #include <linux/errno.h>
-
-MODULE_LICENSE("GPL v2");
-MODULE_AUTHOR("Adrien Oliva, Gaetan Harter");
-
-#define DEBUG
-
-
-#ifdef DEBUG
-#	define DLOG(fmt, args...) printk(KERN_DEBUG "RocketIO %s: "fmt"\n", __func__, ##args)
-#	define KLOG(fmt, args...) printk(KERN_ERR "RocketIO :" fmt"\n", ##args)
-	int debug = 1;
-#else
-#	define DLOG(fmt, args...)
-#	define KLOG(fmt, args...)
-	int debug = 0;
-#endif
-
-static int max_interrupt_work = 20;
-
-int loopback = 0;
 
 /* adresses matérielles des interfaces (adresses MAC) */
 static char *hw_addr0 = NULL;
 static char *hw_addr1 = NULL;
 
-// #####################  A MODIFIER #########################
-	/* adresse matérielle de l'interface */
-#define RIO_BASE_ADDR_0 0x00000
-// ###########################################################
-
-
-/* taille du buffer de réception */
-#define RX_BUF_LEN_IDX	2	/* 0 == 8K, 1 == 16K, 2 == 32K, 3 == 64K */
-
-
-// #####################  A MODIFIER #########################
-	/* à augmenter pour DDP */
-/* taille des buffers de transmission (taille maximale d'un paquet TCP). */
-#define TX_BUF_SIZE	1536
-#define PKT_BUF_SZ	1536
-// ###########################################################
-
-#define TX_TIMEOUT  (6 * HZ)
-
-/* Nombre de descripteurs de transmission */
-#define NUM_TX_DESC	4
-
-/* taille totale des buffers */
-#define TOTAL_MEM_SIZE_LP	((8192 << RX_BUF_LEN_IDX) + TX_BUF_SIZE * NUM_TX_DESC)
-
-
-// #####################  A MODIFIER #########################
-/* bits de l'ISR */
-#define RIO_RX_INTR 0x0001
-#define RIO_TX_INTR 0x0002
-// ###########################################################
-
-void rocketIO_init(struct net_device *dev);
-
 struct net_device *rio_dev0 = NULL;
 struct net_device *rio_dev1 = NULL;
+int dev_is_registered[2] = {0};
+
+
 
 /* structure privée utilisée par le driver */
 struct rio_priv {
+#ifdef SIMULE
+	unsigned int status; /* mode simulé: équivaut à l'ISR matériel */
+#endif
 	struct net_device_stats stats;
-
-	/* utilisé pour le mode simulé
-	   équivaut à l'ISR matériel */
-	unsigned int status;
 
 	/* spinlock de la structure */
 	spinlock_t lock;
@@ -96,8 +46,7 @@ struct rio_priv {
 	struct sk_buff 	*tx_skbuff[NUM_TX_DESC];
 	unsigned char 	*tx_buf[NUM_TX_DESC];
 	unsigned char 	*tx_bufs;
-	/* taille du dernier paquet envoyé */
-	unsigned int tx_packetlen;
+	unsigned int tx_packetlen; /* taille du dernier paquet envoyé */
 };
 
 
@@ -200,25 +149,105 @@ void rocketIO_init(struct net_device *dev)
 	return;
 }
 
-
-int rocketIO_init_module(void)
+/* 
+ * adresses MAC (7 octets) 
+ * Elles commencent par \0 pour ne pas avoir d'adresse de type multicast
+ * Si la valeur retournée est négative, il faudra faire un appel à cleanup
+ */
+int IN_init_addr(void)
 {
-	DLOG("Starting module");
+	hw_addr0 = kmalloc(7, GFP_KERNEL);
+	if (!hw_addr0)
+		goto error;
+	hw_addr1 = kmalloc(7, GFP_KERNEL);
+	if (!hw_addr1)
+		goto error;
+
+	memcpy(hw_addr0, "\0ROCK0\0", 7);
+	memcpy(hw_addr1, "\0ROCK1\0", 7);
+	return 0;
+error:
+	return -EAGAIN;
+}
+
+/*
+ * num = 0 ou 1 == numéro de l'interface
+ */
+
+// va faire planter tant que rocketIO_init est pas finit
+
+int IN_register_netdev(int num)
+{
+	int res;
+	struct net_device *dev;
+
+	if (num != 0 && num != 1) 
+		return -EINVAL;
+
+	/* %d est auto incremente par alloc_netdev */
+	dev = alloc_netdev(sizeof(struct rio_priv), "rio%d", rocketIO_init);
+	if (num == 0)
+		rio_dev0 = dev;
+	else
+		rio_dev1 = dev;
+
+	if ((res = register_netdev(dev))) {
+		KLOG("error %i registering device rio%d", res, num);
+		dev_is_registered[num] = 0;
+		return -EAGAIN;
+	} else {
+		dev_is_registered[num] = 1;
+	}
+		
+
+	if (!dev) {
+		DLOG("Device not found\n");
+		return -ENODEV;
+	}
+
+	DLOG("Device found : rio%d\n", num);
+
 	return 0;
 }
+
 void rocketIO_cleanup(void)
 {
 	if (rio_dev0) {
-		unregister_netdev(rio_dev0);
+		if (dev_is_registered[0])
+			unregister_netdev(rio_dev0);
 		free_netdev(rio_dev0);
 	} 
 	if (rio_dev1) {
-		unregister_netdev(rio_dev1);
+		if (dev_is_registered[1])
+			unregister_netdev(rio_dev1);
 		free_netdev(rio_dev1);
 	}
+	if (hw_addr0)
+		kfree(hw_addr0);
+	if (hw_addr1)
+		kfree(hw_addr1);
+
 	DLOG("OK");
 	return;
 	DLOG("Exiting module");
+}
+int rocketIO_init_module(void)
+{
+	int i;
+	DLOG("Starting module");
+	if (IN_init_addr() < 0)
+		goto error;
+
+	for (i = 0; i < loopback + 1; i++) 
+		if (IN_register_netdev(i) < 0) 
+			goto error;
+	
+
+
+	return 0;
+error:
+	rocketIO_cleanup();
+	return -EAGAIN;
 }
 
 
