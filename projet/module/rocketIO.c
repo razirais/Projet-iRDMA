@@ -142,18 +142,27 @@ int op_rio_release(struct net_device *dev)
 	DLOG("DUMMY");
 	return 0;
 }
-int op_rio_reg_init(struct net_device *dev) {
+
+int op_rio_reg_init(struct net_device *dev) 
+{
 	DLOG("%s", dev->name);
 	return 0;
 }
-void op_rio_reg_uninit(struct net_device *dev) {
+void op_rio_reg_uninit(struct net_device *dev) 
+{
 	DLOG("%s", dev->name);
 	return;
 }
 
 struct net_device_ops rocketIO_ops = {
-	.ndo_init = &op_rio_reg_init,
-	.ndo_uninit = &op_rio_reg_uninit
+	.ndo_init       = &op_rio_reg_init,
+	.ndo_uninit     = &op_rio_reg_uninit
+        //.ndo_open       = &op_rio_open,
+        //.ndo_stop       = &op_rio_release,
+        //.ndo_start_xmit = &op_rio_start_xmit,
+        //.ndo_do_ioctl   = &op_rio_ioctl,
+        //.ndo_get_stats  = &op_rio_stats,
+        //.ndo_tx_timeout = &op_rio_tx_timeout
 };
 
 void rocketIO_init(struct net_device *dev)
@@ -225,7 +234,7 @@ int IN_init_addr(void)
 	memcpy(hw_addr0, "\0ROCK0\0", 7);
 	memcpy(hw_addr1, "\0ROCK1\0", 7);
 	return 0;
-error:
+error:                                  // a revoir si clean de mémoire
 	return -EAGAIN;
 }
 
