@@ -227,8 +227,9 @@ static int gpio_xup_setup(struct Xps_GPIO_XUP_device *gpio_xup)
 			printk("gpio_xup: ISR  has been set\n");
 		}
 
-	} else
+	} else {
 		printk("gpio_xup : No IRQ\n");
+	}
 	if (gpio_xup->is_in)
 		gpio_xup->control->tristate_control = XGPIO_TRI_ALL_IN;
 	else
@@ -315,10 +316,10 @@ static int __devinit gpio_xup_alloc(struct device *dev, int id,
 
 	return 0;
 
-      err_setup:
+err_setup:
 	kfree(gpio_xup);
-      err_alloc:
-      err_noreg:
+err_alloc:
+err_noreg:
 	dev_err(dev, "could not initialize device, err=%i\n", rc);
 	return rc;
 }

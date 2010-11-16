@@ -25,7 +25,17 @@ do
 	else
 		echo [FAIL]
 	fi
-	chgrp users "$LOG01"
+
+	LOG02="../log/$(basename "$i").02.open.log"
+	echo -n "open and close test for $(basename "$i")..."
+	./02.open.sh "$i" > "$LOG02"
+	if [ $? = 0 ]
+	then
+		echo [DONE]
+	else
+		echo [FAIL]
+	fi
+	chgrp users "$LOG02"
 done
 
 

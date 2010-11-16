@@ -24,12 +24,11 @@ int dev_is_registered[2] = {0};
 /* structure privée utilisée par le driver */
 struct rio_priv {
 #ifdef SIMULE
-	unsigned int status; /* mode simulé: équivaut à l'ISR matériel */
+	unsigned int status; 	/* mode simulé: équivaut à l'ISR matériel */
 #endif
 	struct net_device_stats stats;
 
-	/* spinlock de la structure */
-	spinlock_t lock;
+	spinlock_t lock;	/* spinlock de la structure */
 
 	/* Réception. */
 	unsigned char *rx_ring;	/* adresse du ring buffer */
@@ -130,16 +129,64 @@ void IN_init_ring(struct net_device *dev)
 	return;
 }
 
+/*
+ *
+ * On alloue un buffer de taille comprise entre 
+ *  RX_BUF_LEN_IDX
+ * // 0 == 8K, 1 == 16K, 2 == 32K, 3 == 64K 
+ *
+ * et 8k
+ *
+ */
+int IN_alloc_ring(struct net_device *dev)
+{
+	struct rio_priv *priv = netdev_priv(dev);
+	int rx_buf_len_idx = RX_BUF_LEN_IDX;
+
+	do {
+		priv->rx_buf_len = 8192 << rx_buf_len_idx;
+		priv->rx_ring = kmalloc(priv->rx_buf_len + 16 +
+					(TX_BUF_SIZE * NUM_TX_DESC),
+					GFP_KERNEL);
+		priv->cur_rx = (unsigned int) priv->rx_ring;
+	} while (priv->rx_ring == NULL && --rx_buf_len_idx >= 0);
+	
+
+	if (priv->rx_ring == NULL) {
+		KLOG("%s: Couldn't allocate a %d byte receive ring.",
+			       dev->name, priv->rx_buf_len);
+		return -ENOMEM;
+	}
+	DLOG("rx_ring: %x, cur_rx: %x, size: %uK", 
+			(unsigned int) priv->rx_ring, 
+			(unsigned int) priv->cur_rx, 
+			priv->rx_buf_len >> 10);
+
+	priv->tx_bufs = priv->rx_ring + priv->rx_buf_len + 16;
+
+	return 0;
+}
+
 
 int op_rio_open(struct net_device *dev)
 {
 	DLOG("DUMMY");
+	IN_alloc_ring(dev);
 	return 0;
 }
 
 int op_rio_release(struct net_device *dev)
 {
-	DLOG("DUMMY");
+	struct rio_priv *priv = netdev_priv(dev);
+	DLOG("%s", dev->name);
+	/* release ports, irq and such -- like fops->close */
+
+	if (priv->rx_ring) {
+		DLOG("%s kfree ring", dev->name);
+		kfree(priv->rx_ring);
+	}
+
+	netif_stop_queue(dev);
 	return 0;
 }
 
@@ -154,45 +201,58 @@ void op_rio_reg_uninit(struct net_device *dev)
 	return;
 }
 
+/*
+ *
+ * Structure contenant les adresses des opérations sur le driver
+ *
+ */
 struct net_device_ops rocketIO_ops = {
 	.ndo_init       = &op_rio_reg_init,
-	.ndo_uninit     = &op_rio_reg_uninit
-        //.ndo_open       = &op_rio_open,
-        //.ndo_stop       = &op_rio_release,
+	.ndo_uninit     = &op_rio_reg_uninit,
+        .ndo_open       = &op_rio_open,
+        .ndo_stop       = &op_rio_release
         //.ndo_start_xmit = &op_rio_start_xmit,
         //.ndo_do_ioctl   = &op_rio_ioctl,
         //.ndo_get_stats  = &op_rio_stats,
         //.ndo_tx_timeout = &op_rio_tx_timeout
+
+	/*
+	 * dev->open = rocketIO_open;
+	 * dev->stop = rocketIO_release;
+	 * dev->hard_start_xmit = rocketIO_start_xmit;
+	 * dev->do_ioctl = rocketIO_ioctl;
+	 * dev->get_stats = rocketIO_stats;
+	 * dev->tx_timeout = rocketIO_tx_timeout;
+	 * //dev->set_config = rocketIO_config;
+	 * //dev->change_mtu = rocketIO_change_mtu;
+	 * //dev->rebuild_header = rocketIO_rebuild_header;
+	 * //dev->hard_header = rocketIO_header;
+	 * //dev->watchdog_timeo = timeout;
+	 */
 };
 
-void rocketIO_init(struct net_device *dev)
+void IN_rocketIO_init(struct net_device *dev)
 {
-	struct rio_priv *priv;
+	struct rio_priv *priv = netdev_priv(dev);
 	DLOG("DUMMY");
 
+	memset(priv, 0, sizeof(struct rio_priv));
+	spin_lock_init(&priv->lock);
+
 	ether_setup(dev);
-	/* dev->header_ops		= &eth_header_ops;
+	/* dev->header_ops	= &eth_header_ops;
 	 * dev->type		= ARPHRD_ETHER;
-	 * dev->hard_header_len 	= ETH_HLEN;
+	 * dev->hard_header_len	= ETH_HLEN;
 	 * dev->mtu		= ETH_DATA_LEN;
-	 * dev->addr_len		= ETH_ALEN;
+	 * dev->addr_len	= ETH_ALEN;
 	 * dev->tx_queue_len	= 1000;	// Ethernet wants good queues 
 	 * dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
 	 * memset(dev->broadcast, 0xFF, ETH_ALEN);
 	 */
 	dev->netdev_ops = &rocketIO_ops;
 
-	/*dev->open = rocketIO_open;
-	dev->stop = rocketIO_release;
-	dev->hard_start_xmit = rocketIO_start_xmit;
-	dev->do_ioctl = rocketIO_ioctl;
-	dev->get_stats = rocketIO_stats;
-	dev->tx_timeout = rocketIO_tx_timeout;
-	//dev->set_config = rocketIO_config;
-	//dev->change_mtu = rocketIO_change_mtu;
-	//dev->rebuild_header = rocketIO_rebuild_header;
-	//dev->hard_header = rocketIO_header;
-	//dev->watchdog_timeo = timeout;
+
+	/*
 
 	dev->flags |= IFF_NOARP | IFF_PROMISC;
 	dev->features | = NETIF_F_NO_CSUM;
@@ -210,9 +270,6 @@ void rocketIO_init(struct net_device *dev)
 	 * Then, initialize the priv field. This encloses the statistics
 	 * and a few private fields.
 	 */
-	priv = netdev_priv(dev);
-	memset(priv, 0, sizeof(struct rio_priv));
-	spin_lock_init(&priv->lock);
 	DLOG("for %s OK", dev->name);
 	return;
 }
@@ -224,6 +281,7 @@ void rocketIO_init(struct net_device *dev)
  */
 int IN_init_addr(void)
 {
+	DLOG();
 	hw_addr0 = kmalloc(7, GFP_KERNEL);
 	if (!hw_addr0)
 		goto error;
@@ -245,17 +303,18 @@ error:                                  // a revoir si clean de mémoire
  * num = 0 ou 1 == numéro de l'interface
  */
 
-// va faire planter tant que rocketIO_init est pas finit
+// va faire planter tant que IN_rocketIO_init est pas finit
 int IN_register_netdev(int num)
 {
 	int res;
 	struct net_device *dev;
+	DLOG();
 
 	if (num != 0 && num != 1) 
 		return -EINVAL;
 
 	/* %d est auto incremente par alloc_netdev */
-	dev = alloc_netdev(sizeof(struct rio_priv), "rio%d", rocketIO_init);
+	dev = alloc_netdev(sizeof(struct rio_priv), "rio%d", IN_rocketIO_init);
 	if (num == 0)
 		rio_dev0 = dev;
 	else
@@ -282,6 +341,7 @@ int IN_register_netdev(int num)
 
 void rocketIO_cleanup(void)
 {
+	DLOG();
 	if (rio_dev0) {
 		if (dev_is_registered[0])
 			unregister_netdev(rio_dev0);

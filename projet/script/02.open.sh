@@ -1,10 +1,10 @@
 #!/bin/sh
 
 echo "Test de chargement et dechargement du module"
+echo "Et ifconfig up et down "
 echo "version 0.1 -- 11/02/2010"
 echo "Gaetan Harter - Oliva Adrien"
 echo "-------------------------------------------------------------------"
-
 
 if [ $# = 0 ]
 then
@@ -42,6 +42,43 @@ do
 		echo "[$counter]Module loaded: FAIL"
 		exit 4
 	fi
+
+	ifconfig rio0 up > /dev/null
+	if [ $? = 0 ]
+	then
+		echo "[$counter]rio0 UP: OK"
+	else
+		echo "[$counter]rio0 UP: FAIL"
+		exit 4
+	fi
+
+	ifconfig rio1 up > /dev/null
+	if [ $? = 0 ]
+	then
+		echo "[$counter]rio1 UP: OK"
+	else
+		echo "[$counter]rio1 UP: FAIL"
+		exit 4
+	fi
+
+	ifconfig rio0 down > /dev/null
+	if [ $? = 0 ]
+	then
+		echo "[$counter]rio0 DOWN: OK"
+	else
+		echo "[$counter]rio0 DOWN: FAIL"
+		exit 4
+	fi
+
+	ifconfig rio1 down > /dev/null
+	if [ $? = 0 ]
+	then
+		echo "[$counter]rio1 DOWN: OK"
+	else
+		echo "[$counter]rio1 DOWN: FAIL"
+		exit 4
+	fi
+
 	#unload module
 	rmmod "$1" > /dev/null
 	if [ $? = 0 ]
