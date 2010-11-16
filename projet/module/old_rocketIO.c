@@ -156,7 +156,7 @@ static void rocketIO_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 			priv->stats.tx_bytes += priv->tx_packetlen;
 
 			/* libération du socket buffer */
-			dev_kfree_skb(priv->tx_skbuff[entry]);
+			dev_kfree_skb_any(priv->tx_skbuff[entry]);
 			priv->tx_skbuff[entry] = 0;
 
 			/* si la file était pleine, on la relance */
@@ -435,6 +435,7 @@ int rocketIO_open(struct net_device *dev)
 		return -EAGAIN;
 	}
 
+	
 	/* allocation des buffers */
 	rx_buf_len_idx = RX_BUF_LEN_IDX;
 	do {

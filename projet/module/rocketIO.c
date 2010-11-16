@@ -143,6 +143,14 @@ int IN_alloc_ring(struct net_device *dev)
 	struct rio_priv *priv = netdev_priv(dev);
 	int rx_buf_len_idx = RX_BUF_LEN_IDX;
 
+	/* 
+	 * le ring sera place à 7f0 000 
+	 * il faut récupérer la valeur dans le 
+	 * dans device tree champ buffer base
+	 * 
+	 */ 
+
+
 	do {
 		priv->rx_buf_len = 8192 << rx_buf_len_idx;
 		priv->rx_ring = kmalloc(priv->rx_buf_len + 16 +
@@ -343,13 +351,17 @@ void rocketIO_cleanup(void)
 {
 	DLOG();
 	if (rio_dev0) {
-		if (dev_is_registered[0])
+		if (dev_is_registered[0]) {
 			unregister_netdev(rio_dev0);
+			DLOG("Unregistering netdev rio_dev%u", 0);
+		}
 		free_netdev(rio_dev0);
 	} 
 	if (rio_dev1) {
-		if (dev_is_registered[1])
+		if (dev_is_registered[1]) {
 			unregister_netdev(rio_dev1);
+			DLOG("Unregistering netdev rio_dev%u", 1);
+		}
 		free_netdev(rio_dev1);
 	}
 	if (hw_addr0)
