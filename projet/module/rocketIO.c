@@ -189,11 +189,13 @@ int IN_alloc_ring(struct net_device *dev)
 int op_rio_open(struct net_device *dev)
 {
 	/* alloue le chanel d'interruption */
+	/*
 	if (request_irq(dev->irq, 
 			&rocketIO_interrupt, 
 			SA_SHIRQ, dev->name, dev)) {
 		return -EAGAIN;
 	}
+	*/
 
 	IN_alloc_ring(dev);
 	IN_init_ring(dev);
