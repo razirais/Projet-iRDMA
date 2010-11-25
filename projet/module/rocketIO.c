@@ -45,7 +45,7 @@ struct rio_priv {
 	struct sk_buff 	*tx_skbuff[NUM_TX_DESC];
 	unsigned char 	*tx_buf[NUM_TX_DESC];
 	unsigned char 	*tx_bufs;
-	unsigned int tx_packetlen; /* taille du dernier paquet envoyé */
+	unsigned int 	tx_packetlen; /* taille du dernier paquet envoyé */
 };
 
 
@@ -60,13 +60,12 @@ void rocketIO_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 /*
  * imprime les statistiques (utilisé par ifconfig)
  */
-struct net_device_stats *rocketIO_stats(struct net_device *dev)
+// DONE
+struct net_device_stats *op_rio_stats(struct net_device *dev)
 {
-	/*struct rio_priv *priv = dev->priv;
+	struct rio_priv *priv = netdev_priv(dev);
+	DLOG();
 	return &(priv->stats);
-	*/
-	DLOG("DUMMY");
-	return NULL;
 }
 
 /*
@@ -125,7 +124,18 @@ void op_rio_tx_timeout(struct net_device *dev)
 //static 
 void IN_init_ring(struct net_device *dev)
 {
-	DLOG("DUMMY");
+	struct rio_priv *priv = netdev_priv(dev);
+	int i;
+
+	priv->tx_full = 0;
+	priv->dirty_tx = priv->cur_tx = 0;
+
+	for (i = 0; i < NUM_TX_DESC; i++) {
+		priv->tx_skbuff[i] = 0;
+	}
+	DLOG("tx_skbuff=%x tx_bufs=%x", 
+		(unsigned int) priv->tx_skbuff[0], (unsigned int) priv->tx_bufs);
+	DLOG("for %s OK", dev->name);
 	return;
 }
 
@@ -178,8 +188,27 @@ int IN_alloc_ring(struct net_device *dev)
 
 int op_rio_open(struct net_device *dev)
 {
-	DLOG("DUMMY");
+	/* alloue le chanel d'interruption */
+	if (request_irq(dev->irq, 
+			&rocketIO_interrupt, 
+			SA_SHIRQ, dev->name, dev)) {
+		return -EAGAIN;
+	}
+
 	IN_alloc_ring(dev);
+	IN_init_ring(dev);
+
+
+	/* adresse MAC des interfaces */
+	if (dev == rio_dev0)
+		memcpy(dev->dev_addr, hw_addr0, 6);
+	else
+		memcpy(dev->dev_addr, hw_addr1, 6);
+
+	/* démarrage de l'interface */
+	netif_start_queue(dev);
+
+	DLOG("for %s OK", dev->name);
 	return 0;
 }
 
@@ -218,12 +247,11 @@ struct net_device_ops rocketIO_ops = {
 	.ndo_init       = &op_rio_reg_init,
 	.ndo_uninit     = &op_rio_reg_uninit,
         .ndo_open       = &op_rio_open,
-        .ndo_stop       = &op_rio_release
-        //.ndo_start_xmit = &op_rio_start_xmit,
-        //.ndo_do_ioctl   = &op_rio_ioctl,
-        //.ndo_get_stats  = &op_rio_stats,
-        //.ndo_tx_timeout = &op_rio_tx_timeout
-
+        .ndo_stop       = &op_rio_release,
+        .ndo_start_xmit = &op_rio_start_xmit,
+        .ndo_do_ioctl   = &op_rio_ioctl,
+        .ndo_get_stats  = &op_rio_stats,
+        .ndo_tx_timeout = &op_rio_tx_timeout
 	/*
 	 * dev->open = rocketIO_open;
 	 * dev->stop = rocketIO_release;
@@ -241,11 +269,9 @@ struct net_device_ops rocketIO_ops = {
 
 void IN_rocketIO_init(struct net_device *dev)
 {
-	struct rio_priv *priv = netdev_priv(dev);
+	struct rio_priv *priv;
 	DLOG("DUMMY");
-
-	memset(priv, 0, sizeof(struct rio_priv));
-	spin_lock_init(&priv->lock);
+	
 
 	ether_setup(dev);
 	/* dev->header_ops	= &eth_header_ops;
@@ -258,7 +284,7 @@ void IN_rocketIO_init(struct net_device *dev)
 	 * memset(dev->broadcast, 0xFF, ETH_ALEN);
 	 */
 	dev->netdev_ops = &rocketIO_ops;
-
+	
 
 	/*
 
@@ -278,6 +304,12 @@ void IN_rocketIO_init(struct net_device *dev)
 	 * Then, initialize the priv field. This encloses the statistics
 	 * and a few private fields.
 	 */
+	priv = netdev_priv(dev);
+	memset(priv, 0, sizeof(struct rio_priv));
+	spin_lock_init(&priv->lock);
+	// st
+
+
 	DLOG("for %s OK", dev->name);
 	return;
 }
@@ -321,8 +353,10 @@ int IN_register_netdev(int num)
 	if (num != 0 && num != 1) 
 		return -EINVAL;
 
+
 	/* %d est auto incremente par alloc_netdev */
 	dev = alloc_netdev(sizeof(struct rio_priv), "rio%d", IN_rocketIO_init);
+
 	if (num == 0)
 		rio_dev0 = dev;
 	else
@@ -338,11 +372,11 @@ int IN_register_netdev(int num)
 		
 
 	if (!dev) {
-		DLOG("Device not found\n");
+		DLOG("Device not found");
 		return -ENODEV;
 	}
 
-	DLOG("Device found : rio%d\n", num);
+	DLOG("Device found : rio%d", num);
 
 	return 0;
 }
@@ -377,6 +411,8 @@ int rocketIO_init_module(void)
 {
 	int i;
 	DLOG("Starting module");
+
+
 	if (IN_init_addr() < 0)
 		goto error;
 
